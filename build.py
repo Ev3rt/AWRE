@@ -49,7 +49,10 @@ def build(config: dict) -> None:
 
     # Build and integrate files
     for patch in config["patches"]:
-        compile_source_file(gcc_command, objcopy_command, patch["filename"])
+        print(f"Building '{patch['filename']}'")
+        compile_source_file(
+            gcc_command, objcopy_command, patch["filename"], patch["address"]
+        )
         integrate_binary_file(rom, patch["filename"], patch["address"], patch["size"])
 
     # Write the resulting ROM to disk
@@ -72,16 +75,22 @@ def clean(config: dict) -> None:
     # Also remove built ROM
     Path(config["output_rom"]).unlink(missing_ok=True)
     Path(config["output_rom"].replace(".gba", ".sav")).unlink(missing_ok=True)
+    print("Cleanup done")
 
 
 def compile_source_file(
-    gcc_command: list[str], objcopy_command: list[str], filename: str
+    gcc_command: list[str], objcopy_command: list[str], filename: str, address: int
 ) -> None:
     """
     Compile a source (C) file to a raw binary file.
     """
     result = subprocess.run(
-        [arg.replace("$FILENAME$", filename) for arg in gcc_command],
+        [
+            arg.replace("$FILENAME$", filename).replace(
+                "$ADDRESS$", hex(0x08000000 + address)
+            )
+            for arg in gcc_command
+        ],
         capture_output=True,
         universal_newlines=True,
     )

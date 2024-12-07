@@ -5,15 +5,18 @@ base_rom_sha1: d0a0a4cfe9b95ac7118f7ef476f014ca0242eb65
 output_rom: AWRE.gba
 
 # Compiler options
-# Note: $FILENAME$ will be replaced with the filename specified in the 'patches' section.
+# Note: $FILENAME$ and $ADDRESS$ will be replaced by the filename and
+#       address specified in the 'patches' section.
 gcc:
   path: /opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc
   opts:
     - -I/opt/devkitpro/libgba/include # libgba header files
+    - -Iinclude # includes from this project
     - -mthumb # Generate thumb instructions
     - -Os # Optimize for executable size
     - -nostartfiles # Do not link against standard system startup files
     - -nostdlib # Do not link against standard library
+    - -Ttext=$ADDRESS$ # Specify base address
     - -o # Specify output file
     - $FILENAME$.elf
     - $FILENAME$.c
@@ -36,3 +39,9 @@ patches:
   - filename: src/init/set_interrupts
     address: 0x0007ae00
     size: 0x70
+  - filename: src/init/init_unknown_wram_structure_call
+    address: 0x0007ac88
+    size: 0x18
+  - filename: src/init/init_unknown_wram_structure
+    address: 0x0007af94
+    size: 0x24
