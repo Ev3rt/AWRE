@@ -1,0 +1,33 @@
+---
+# Common configuration options
+base_rom: AdvanceWars1USA.gba
+base_rom_sha1: d0a0a4cfe9b95ac7118f7ef476f014ca0242eb65
+output_rom: AWRE.gba
+
+# Compiler options
+# Note: $FILENAME$ will be replaced with the filename specified in the 'patches' section.
+gcc:
+  path: /opt/devkitpro/devkitARM/bin/arm-none-eabi-gcc
+  opts:
+    - -I/opt/devkitpro/libgba/include # libgba header files
+    - -mthumb # Generate thumb instructions
+    - -Os # Optimize for executable size
+    - -nostartfiles # Do not link against standard system startup files
+    - -nostdlib # Do not link against standard library
+    - -o # Specify output file
+    - $FILENAME$.elf
+    - $FILENAME$.c
+objcopy:
+  path: /opt/devkitpro/devkitARM/bin/arm-none-eabi-objcopy
+  opts:
+    - -O
+    - binary
+    - $FILENAME$.elf
+    - $FILENAME$.bin
+
+# List of patches to apply/source files to integrate
+# Note: provide filenames without extensions, these will be added by the compiler optiones in the section above.
+patches:
+  - filename: src/init/set_interrupts
+    address: 0x0007ae00
+    size: 0x70

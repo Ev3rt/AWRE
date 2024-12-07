@@ -1,0 +1,13 @@
+# IDE files
+.vscode/
+.idea/
+
+# Base ROM/patched ROM
+*.gba
+
+# Save files from testing
+*.sav
+
+# Build output
+*.elf
+*.bin
