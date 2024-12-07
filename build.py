@@ -56,6 +56,10 @@ def build(config: dict) -> None:
     with open(config["output_rom"], "wb") as output_file:
         output_file.write(rom)
 
+    print(
+        f"Succesfully wrote '{config["output_rom"]}' ({hashlib.sha1(rom).hexdigest()})"
+    )
+
 
 def clean(config: dict) -> None:
     """
@@ -69,18 +73,40 @@ def clean(config: dict) -> None:
     Path(config["output_rom"]).unlink(missing_ok=True)
     Path(config["output_rom"].replace(".gba", ".sav")).unlink(missing_ok=True)
 
+
 def compile_source_file(
     gcc_command: list[str], objcopy_command: list[str], filename: str
 ) -> None:
     """
     Compile a source (C) file to a raw binary file.
     """
-    subprocess.run(
-        [arg.replace("$FILENAME$", filename) for arg in gcc_command], check=True
+    result = subprocess.run(
+        [arg.replace("$FILENAME$", filename) for arg in gcc_command],
+        capture_output=True,
+        universal_newlines=True,
     )
-    subprocess.run(
-        [arg.replace("$FILENAME$", filename) for arg in objcopy_command], check=True
+    if result.returncode != 0:
+        print(
+            f"Error while running gcc:\n"
+            f"args: '{result.args}'\n"
+            f"stdout: '{result.stdout.rstrip()}'\n"
+            f"stderr: '{result.stderr.rstrip()}'"
+        )
+        sys.exit(1)
+
+    result = subprocess.run(
+        [arg.replace("$FILENAME$", filename) for arg in objcopy_command],
+        capture_output=True,
+        universal_newlines=True,
     )
+    if result.returncode != 0:
+        print(
+            f"Error while running objcopy:\n"
+            f"args: '{result.args}'\n"
+            f"stdout: '{result.stdout.rstrip()}'\n"
+            f"stderr: '{result.stderr.rstrip()}'"
+        )
+        sys.exit(1)
 
 
 def integrate_binary_file(
