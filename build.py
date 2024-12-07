@@ -2,6 +2,7 @@
 
 import hashlib
 import os
+from pathlib import Path
 import subprocess
 import sys
 import yaml
@@ -18,6 +19,23 @@ def main() -> None:
     with open("build-config.yaml", "r") as config_file:
         config = yaml.safe_load(config_file)
 
+    match len(sys.argv):
+        case 1:
+            build(config)
+        case 2:
+            if sys.argv[1] == "clean":
+                clean(config)
+            else:
+                print(f"Unknown option '{sys.argv[1]}'")
+                sys.exit(1)
+        case _:
+            print(f"Unknown options '{' '.join(sys.argv[1:])}'")
+
+
+def build(config: dict) -> None:
+    """
+    Build and integrate source files and save the result as a new ROM.
+    """
     with open(config["base_rom"], "rb") as rom_file:
         rom = bytearray(rom_file.read())
 
@@ -38,6 +56,18 @@ def main() -> None:
     with open(config["output_rom"], "wb") as output_file:
         output_file.write(rom)
 
+
+def clean(config: dict) -> None:
+    """
+    Cleanup build artifacts.
+    """
+    # Cleanup build files
+    for patch in config["patches"]:
+        for item in config["clean"]:
+            Path(item.replace("$FILENAME$", patch["filename"])).unlink(missing_ok=True)
+    # Also remove built ROM
+    Path(config["output_rom"]).unlink(missing_ok=True)
+    Path(config["output_rom"].replace(".gba", ".sav")).unlink(missing_ok=True)
 
 def compile_source_file(
     gcc_command: list[str], objcopy_command: list[str], filename: str

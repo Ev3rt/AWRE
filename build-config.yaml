@@ -25,6 +25,11 @@ objcopy:
     - $FILENAME$.elf
     - $FILENAME$.bin
 
+# Cleanup configuration
+clean:
+  - $FILENAME$.elf
+  - $FILENAME$.bin
+
 # List of patches to apply/source files to integrate
 # Note: provide filenames without extensions, these will be added by the compiler optiones in the section above.
 patches:
